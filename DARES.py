@@ -10,6 +10,18 @@ import torch.nn as nn
 import math
 from torch.nn.parameter import Parameter
 
+from transformers import AutoImageProcessor, AutoModelForDepthEstimation, DepthAnythingForDepthEstimation
+import torch
+from torchvision import transforms
+import numpy as np
+from PIL import Image
+import requests
+import matplotlib.pyplot as plt
+import os
+import torch.nn as nn
+import math
+from torch.nn.parameter import Parameter
+
 class _LoRA_qkv(nn.Module):
     """In Dinov2 it is implemented as
     self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
@@ -121,7 +133,6 @@ class LoRAInitializer:
         for w_B in self.w_Bs:
             nn.init.zeros_(w_B.weight)
 
-
 class Customised_DAM(nn.Module):
     def __init__(self, enable_lora = True, r = 8, lora = ['q', 'v']):
         super(Customised_DAM, self).__init__()
@@ -133,14 +144,14 @@ class Customised_DAM(nn.Module):
         self.neck = model.neck
         model_head = model.head
         self.head = DepthAnythingDepthEstimationHead(model_head)
-        
-        if enable_lora:
-            # Initialize LoRA parameters
-            self.lora_initializer = LoRAInitializer(model, r, lora)
-        
 
         model.post_init()
 
+        # self.lora_initializer.reset_parameters()
+        # print("LoRA params initialized!")
+        if enable_lora:
+            # Initialize LoRA parameters
+            self.lora_initializer = LoRAInitializer(model, r, lora)
     def save_parameters(self, filename: str) -> None:
         r"""Only safetensors is supported now.
 
