@@ -123,7 +123,7 @@ class LoRAInitializer:
 
 
 class Customised_DAM(nn.Module):
-    def __init__(self, r = 8, lora = ['q', 'v']):
+    def __init__(self, enable_lora = True, r = 8, lora = ['q', 'v']):
         super(Customised_DAM, self).__init__()
         model = DepthAnythingForDepthEstimation.from_pretrained("LiheYoung/depth-anything-small-hf")
         self.r = r
@@ -131,8 +131,9 @@ class Customised_DAM(nn.Module):
         self.config = model.config
         self.backbone = model.backbone
 
-        # Initialize LoRA parameters
-        self.lora_initializer = LoRAInitializer(model, r, lora)
+        if enable_lora:
+            # Initialize LoRA parameters
+            self.lora_initializer = LoRAInitializer(model, r, lora)
 
         self.neck = model.neck
         model_head = model.head
@@ -217,13 +218,13 @@ class Customised_DAM(nn.Module):
         hidden_states = self.neck(hidden_states, patch_height, patch_width)
         #[1, 64, 18, 22], [1, 64, 36, 44], [1, 64, 72, 88], [1, 64, 144, 176]
         # print('hidden_states2', len(hidden_states), hidden_states[0].shape, hidden_states[1].shape, hidden_states[2].shape, hidden_states[3].shape)
-        predicted_depth = self.head(hidden_states[3], height, width)
-        #outputs = {}
-        #outputs[("disp", 0)] = self.head(hidden_states[3], height, width)
-        #outputs[("disp", 1)] = self.head(hidden_states[2], height/2, width/2)
-        #outputs[("disp", 2)] = self.head(hidden_states[1], height/4, width/4)
-        #outputs[("disp", 3)] = self.head(hidden_states[0], height/8, width/8)
-        #print(outputs[("disp", 0)].shape, outputs[("disp", 1)].shape,outputs[("disp", 2)].shape,outputs[("disp", 3)].shape,)
-        #return outputs
+        #predicted_depth = self.head(hidden_states[3], height, width)
+        outputs = {}
+        outputs[("disp", 0)] = self.head(hidden_states[3], height, width)
+        outputs[("disp", 1)] = self.head(hidden_states[2], height/2, width/2)
+        outputs[("disp", 2)] = self.head(hidden_states[1], height/4, width/4)
+        outputs[("disp", 3)] = self.head(hidden_states[0], height/8, width/8)
+        print(outputs[("disp", 0)].shape, outputs[("disp", 1)].shape,outputs[("disp", 2)].shape,outputs[("disp", 3)].shape,)
+        return outputs
         #return outputs[("disp", 0)]
-        return predicted_depth.unsqueeze(1)
+        # return predicted_depth
