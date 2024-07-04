@@ -133,7 +133,7 @@ class LoRAInitializer:
         for w_B in self.w_Bs:
             nn.init.zeros_(w_B.weight)
 
-class Customised_DAM(nn.Module):
+class DARES(nn.Module):
     def __init__(self, enable_lora = True, r = 8, lora = ['q', 'v']):
         super(Customised_DAM, self).__init__()
         model = DepthAnythingForDepthEstimation.from_pretrained("LiheYoung/depth-anything-small-hf")
